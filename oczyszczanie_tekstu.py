@@ -4,7 +4,7 @@ from nltk.corpus import stopwords
 tekst = "<body>The Norwegian :) artist AURORA has always stood out for her strong singularity " \
         "and this fourth ;< album, The Gods We Can Touch, is proof that this is not about to change. " \
         "Since her 2015 single “Runaway,” AURORA :-) has established herself as one of the icons of " \
-        "the pop avant-garde, while building an impressive mainstream following.</body>"
+        "the pop avant-garde, while building an impressive mainstream following. Lorem ipsum. </body>"
 
 stop_words = stopwords.words("english")
 
