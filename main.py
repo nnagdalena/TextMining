@@ -1,37 +1,32 @@
-import matplotlib.pyplot as plt
 import pandas as pd
-from wordcloud import WordCloud
-from funkcje import broom, usun_stopwords, stemming, stop_words
+from funkcje import text_tokenizer, top_tokens, top_documents
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 
-fake = pd.read_csv('News_dataset/Fake.csv')
-true = pd.read_csv('News_dataset/True.csv')
+df = pd.read_csv('News_dataset/Fake.csv', usecols=['title', 'text'])
 
-list = []
 
-fake_title = " ".join(x for x in fake.title)
-list.append(fake_title)
-true_title = " ".join(x for x in true.title)
-list.append(true_title)
-# fake_text = " ".join(x for x in fake.text)
-# list.append(fake_text)
-# true_text = " ".join(x for x in true.text)
-# list.append(true_text)
+def main():
+    vectorizer_count = CountVectorizer(tokenizer=text_tokenizer)
+    count_transform = vectorizer_count.fit_transform(df['title'])
+    vectorizer_tfid = TfidfVectorizer(tokenizer=text_tokenizer)
+    tfid_transform = vectorizer_tfid.fit_transform(df['title'])
+    print("Jeśli do vectorizera liczebnościowego przekażemy jedynie jeden dokument, to jakie "
+          "wartości będzie miała otrzymana macierz? Albo jakich nie będzie miała?")
+    print("\nPuszczajac kod, ktory jest zakomentowany poznamy odpowiedz, ze wyswietla sie same 1, "
+          "zadnych 0 nie bedzie")
 
-for ziomek in list:
-    ziomek = broom(ziomek)
-    ziomek = usun_stopwords(ziomek)
-    ziomek = stemming(ziomek)
-    ziomek = " ".join(ziomek)
+    most_common_tokens: list = top_tokens(count_transform.toarray().sum(axis=0),
+                                        vectorizer_count.get_feature_names_out(), 10)
+    print("\n10 najczesciej wystepujacych tokenow")
+    print(most_common_tokens)
+    most_important_tokens: list = top_tokens(tfid_transform.toarray().sum(axis=0),
+                                            vectorizer_tfid.get_feature_names_out(), 10)
+    print("\n10 najwazniejszych tokenow")
+    print(most_important_tokens)
+    most_common_docs: list = top_documents(count_transform.toarray().sum(axis=0), 10)
+    print("\n10 najczesciej wystepujacych dokumentow")
+    for doc in most_common_docs:
+        print(df['title'][doc])
 
-fake_title_wc = WordCloud(stopwords=stop_words, background_color="white").generate(fake_title)
-true_title_wc = WordCloud(stopwords=stop_words, background_color="white").generate(true_title)
-# fake_text_wc = WordCloud(stopwords=stop_words, background_color="white").generate(fake_title)
-# true_text_wc = WordCloud(stopwords=stop_words, background_color="white").generate(true_title)
 
-lista_wc = [fake_title_wc, true_title_wc]
-
-for wc in lista_wc:
-    plt.imshow(wc, interpolation='bilinear')
-    plt.axis("off")
-    plt.show()
-
+main()
