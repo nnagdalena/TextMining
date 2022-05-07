@@ -34,3 +34,4 @@ for wc in lista_wc:
     plt.imshow(wc, interpolation='bilinear')
     plt.axis("off")
     plt.show()
+

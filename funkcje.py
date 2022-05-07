@@ -2,6 +2,7 @@ import re
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 
+
 stop_words = stopwords.words("english")
 
 
