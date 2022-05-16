@@ -1,40 +1,48 @@
+from funkcje import text_tokenizer
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, BaggingClassifier
+from sklearn.svm import LinearSVC
+from sklearn import metrics
 import pandas as pd
-from funkcje import text_tokenizer, top_tokens, top_documents, tabelka, wykres, plot_table_most_important
-from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
-import seaborn as sns
 
 fake = pd.read_csv('Fake.csv', usecols=['title', 'text'])
 true = pd.read_csv('True.csv', usecols=['title', 'text'])
-joined = pd.concat([fake, true],ignore_index=True)
+true['flag'] = 1
+fake['flag'] = 0
+joined = pd.concat([fake, true], ignore_index=True)
 
 
 def main():
     vectorizer_count = CountVectorizer(tokenizer=text_tokenizer)
-    true_count = vectorizer_count.fit_transform(true['title'])
-    fake_count = vectorizer_count.fit_transform(fake['title'])
+    news = vectorizer_count.fit_transform(joined['title'])
+    x_train, x_test, y_train, y_test = train_test_split(news, joined['flag'], test_size=0.25, random_state=13)
 
-    vectorizer_tfid = TfidfVectorizer(tokenizer=text_tokenizer)
-    true_tfid = vectorizer_tfid.fit_transform(true['text'])
+    # Decision tree
+    model_tree = DecisionTreeClassifier().fit(x_train, y_train)
+    y_pred = model_tree.predict(x_test)
+    print("\nDecision tree model accuracy: ", round(metrics.accuracy_score(y_test, y_pred), 3))
 
-    vectorizer_binary = CountVectorizer(tokenizer=text_tokenizer, binary=True)
-    binary = vectorizer_binary.fit_transform(joined['title'])
+    # Random forest
+    model_rf = RandomForestClassifier().fit(x_train, y_train)
+    y_pred = model_rf.predict(x_test)
+    print("\nRandom forest model accuracy: ", round(metrics.accuracy_score(y_test, y_pred), 2))
 
-    top_fake_count = top_tokens(fake_count.toarray().sum(axis=0), vectorizer_count.get_feature_names_out(), 15)
-    top_true_count = top_tokens(true_count.toarray().sum(axis=0), vectorizer_count.get_feature_names_out(), 15)
-    top_true_tfid = top_tokens(true_tfid.toarray().sum(axis=0), vectorizer_tfid.get_feature_names_out(), 15)
-    top_binary = top_tokens(binary.toarray().sum(axis=0), vectorizer_binary.get_feature_names_out(), 15)
+    # SVM
+    model_svm = LinearSVC().fit(x_train, y_train)
+    y_pred = model_svm.predict(x_test)
+    print("\nSVM model accuracy: ", round(metrics.accuracy_score(y_test, y_pred), 3))
 
-    print(wykres(top_fake_count, "Tokeny występujące w tytułach fałszywych wiadomości"))
-    print(tabelka(top_fake_count, "Tokeny występujące w tytułach fałszywych wiadomości"))
+    # AdaBoost
+    model_adaboost = AdaBoostClassifier().fit(x_train, y_train)
+    y_pred = model_adaboost.predict(x_test)
+    print("\nAdaBoost model accuracy: ", round(metrics.accuracy_score(y_test, y_pred), 3))
 
-    print(wykres(top_true_count, "Tokeny występujące w tytułach prawdziwych wiadomości"))
-    print(tabelka(top_true_count, "Tokeny występujące w tytułach prawdziwych wiadomości"))
-
-    print(wykres(top_true_tfid, "Kluczowe tokeny prawdziwych wiadomości na podstawie miary TF-IDF"))
-    print(tabelka(top_true_tfid, "Kluczowe tokeny prawdziwych wiadomości na podstawie miary TF-IDF"))
-
-    print(wykres(top_binary,  "Crucial tokens based on binary weight"))
-    print(tabelka(top_binary,  "Crucial tokens based on binary weight"))
+    # Bagging
+    model_bag = BaggingClassifier().fit(x_train, y_train)
+    y_pred = model_bag.predict(x_test)
+    print("\nBagging model accuracy: ", round(metrics.accuracy_score(y_test, y_pred), 3))
 
 
 main()
